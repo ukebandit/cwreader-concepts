@@ -1,18 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, MouseEvent } from 'react';
 import { 
   Printer, FileText, Mail, MessageSquare, Link, Copy, 
   Twitter, Facebook, Linkedin, Bookmark, Share, X, 
-  Download, Code, ExternalLink
+  Download, Code, ExternalLink, LucideIcon
 } from 'lucide-react';
 import { useDocumentContext } from '../../context/DocumentContext';
+import { ThemeClasses, DocumentSection } from '../../context/DocumentContext';
 import { 
   generateShareableUrl, shareContent, copyToClipboard 
 } from '../../utils/shareUtils';
 
-const ShareSheet = ({ isOpen, onClose, section }) => {
+interface ShareStatus {
+  success: boolean;
+  message: string;
+}
+
+interface ShareSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  section: DocumentSection | null;
+}
+
+interface ShareButtonProps {
+  Icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+  theme: ThemeClasses;
+  primary?: boolean;
+  small?: boolean;
+}
+
+interface ShareContactProps {
+  image: string;
+  label: string;
+  onClick: () => void;
+  theme: ThemeClasses;
+}
+
+type ShareAction = 
+  | 'print'
+  | 'pdf'
+  | 'email'
+  | 'message'
+  | 'twitter'
+  | 'facebook'
+  | 'linkedin'
+  | 'copy-link'
+  | 'copy-text'
+  | 'bookmark'
+  | 'native'
+  | 'more';
+
+const ShareSheet: React.FC<ShareSheetProps> = ({ isOpen, onClose, section }) => {
   const { theme, docContent } = useDocumentContext();
-  const [shareStatus, setShareStatus] = useState(null);
-  const [animateIn, setAnimateIn] = useState(false);
+  const [shareStatus, setShareStatus] = useState<ShareStatus | null>(null);
+  const [animateIn, setAnimateIn] = useState<boolean>(false);
   
   // Detect device type
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -21,7 +63,7 @@ const ShareSheet = ({ isOpen, onClose, section }) => {
   
   // Animation effect
   useEffect(() => {
-    let animationTimer;
+    let animationTimer: NodeJS.Timeout | undefined;
     if (isOpen) {
       // Small delay to ensure component is mounted before animation starts
       animationTimer = setTimeout(() => setAnimateIn(true), 10);
@@ -36,7 +78,7 @@ const ShareSheet = ({ isOpen, onClose, section }) => {
   }, [isOpen]);
   
   // Share action handler
-  const handleShare = async (action) => {
+  const handleShare = async (action: ShareAction) => {
     try {
       const title = section?.title || docContent.title;
       const url = generateShareableUrl(section?.id);
@@ -140,11 +182,15 @@ const ShareSheet = ({ isOpen, onClose, section }) => {
     } catch (error) {
       console.error('Share error:', error);
       // More descriptive error message
+      let errorMessage = 'Share failed';
+      if (error instanceof Error) {
+        errorMessage = error.message === 'AbortError' 
+          ? 'Sharing was cancelled' 
+          : error.message;
+      }
       setShareStatus({ 
         success: false, 
-        message: error.message === 'AbortError' 
-          ? 'Sharing was cancelled' 
-          : error.message || 'Share failed'
+        message: errorMessage
       });
     }
     
@@ -506,7 +552,7 @@ const ShareSheet = ({ isOpen, onClose, section }) => {
 };
 
 // Button component for share actions
-const ShareButton = ({ Icon, label, onClick, theme, primary = false, small = false }) => {
+const ShareButton: React.FC<ShareButtonProps> = ({ Icon, label, onClick, theme, primary = false, small = false }) => {
   const baseClasses = primary 
     ? `bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 ${theme.hoverBg}` 
     : `${theme.button} ${theme.hoverBg}`;
@@ -529,7 +575,7 @@ const ShareButton = ({ Icon, label, onClick, theme, primary = false, small = fal
 };
 
 // Contact component for AirDrop-style sharing (iOS)
-const ShareContact = ({ image, label, onClick, theme }) => {
+const ShareContact: React.FC<ShareContactProps> = ({ image, label, onClick, theme }) => {
   return (
     <button 
       className="flex flex-col items-center justify-center"
