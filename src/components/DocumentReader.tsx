@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Search, Menu, Bookmark, Share, Info, Home, ChevronRight, Settings, 
-         Book, Filter, Download, Upload, Heart, Star, X, Moon, Sun, Eye, EyeOff } from 'lucide-react';
+         Book, Filter, Download, Upload, Star, X, Moon, Sun, Eye, EyeOff } from 'lucide-react';
 import ShareSheet from './DocumentReader/ShareSheet';
 import TableOfContents from './DocumentReader/TableOfContents';
 import SearchResults from './DocumentReader/SearchResults';
@@ -39,16 +39,15 @@ const DocumentReader: React.FC = () => {
     setDrawerState,
     setActiveDrawerContent,
     setDarkMode,
+    setIsLeftHanded,
     setFontSize,
     setShowProgress,
     toggleFilter,
     handleSectionClick,
     navigateSection,
     setIsContextPanelOpen,
-    setContentFilters,
     setContextFilters,
-    setTocFilters,
-    setIsLeftHanded
+    setTocFilters
   } = useDocumentContext();
 
   // ShareSheet state
@@ -218,24 +217,7 @@ const DocumentReader: React.FC = () => {
           </div>
 
           {/* Contents */}
-          <div className="flex-1 overflow-y-auto">
-            {searchQuery ? (
-              <SearchResults 
-                results={searchResults} 
-                activeSection={activeSection}
-                onSectionClick={handleSectionClick}
-                theme={theme}
-              />
-            ) : (
-              <TableOfContents 
-                sections={docContent.sections} 
-                activeSection={activeSection}
-                onSectionClick={handleSectionClick}
-                filters={tocFilters}
-                theme={theme}
-              />
-            )}
-          </div>
+
           
           {/* Navigation Controls */}
           <div className={`p-3 ${theme.border} border-t flex items-center justify-between ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
@@ -330,9 +312,6 @@ const DocumentReader: React.FC = () => {
               <div className="flex items-center space-x-1">
                 <button className={`${theme.button} p-1`} onClick={() => setFontSize('small')}>
                   <span className="text-xs">A</span>
-                </button>
-                <button className={`${theme.button} p-1`} onClick={() => setFontSize('medium')}>
-                  <span className="text-sm">A</span>
                 </button>
                 <button className={`${theme.button} p-1`} onClick={() => setFontSize('large')}>
                   <span className="text-base">A</span>
